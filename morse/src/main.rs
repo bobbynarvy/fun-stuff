@@ -1,5 +1,6 @@
 mod mapping;
+mod morse;
 
 fn main() {
-    println!("{:?}", mapping::morse_alpha_map());
+    println!("{:?}", morse::encode("hello world!"));
 }
