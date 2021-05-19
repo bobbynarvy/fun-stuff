@@ -3,12 +3,12 @@ use std::net::TcpListener;
 use std::str;
 
 #[derive(Debug)]
-enum Request {
-    Get(&'static str),
-    Set(&'static str, &'static str),
+enum Request<'a> {
+    Get(&'a str),
+    Set(&'a str, &'a str),
 }
 
-fn parse_payload(payload: &'static str) -> Result<Request, &'static str> {
+fn parse_payload(payload: &str) -> Result<Request, &'static str> {
     let mut parsed = payload.split_whitespace();
     let op = match parsed.next() {
         Some("GET") => Ok("GET"),
