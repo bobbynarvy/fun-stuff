@@ -1,6 +1,6 @@
 use std::collections::HashMap;
-use std::io::Read;
-use std::net::TcpListener;
+use std::io::{Read, Write};
+use std::net::{TcpListener, TcpStream};
 use std::str;
 
 #[derive(Debug)]
@@ -45,6 +45,22 @@ fn process_request(request: Request, kv: &mut HashMap<String, String>) -> Result
     }
 }
 
+fn send_response(stream: &mut TcpStream, response: &Result<String, &str>) {
+    match response {
+        Ok(r) => {
+            stream.write(r.as_bytes()).unwrap();
+            stream.flush().unwrap();
+        },
+        Err(e) => {
+            let mut err_msg = String::from("Error: ");
+            err_msg.push_str(e);
+
+            stream.write(err_msg.as_bytes()).unwrap();
+            stream.flush().unwrap();
+        }
+    }
+}
+
 fn main() -> std::io::Result<()> {
     let listener = TcpListener::bind("127.0.0.1:8080")?;
     let mut kv = HashMap::<String, String>::new();
@@ -61,8 +77,9 @@ fn main() -> std::io::Result<()> {
                     Err(_) => Err("Payload error."),
                 };
                 let response = request.and_then(|req| process_request(req, &mut kv));
-
-                println!("{:?}", response)
+                
+                println!("{:?}", response);
+                send_response(&mut s, &response);
             }
         }
     }
