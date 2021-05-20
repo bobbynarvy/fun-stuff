@@ -50,7 +50,7 @@ fn send_response(stream: &mut TcpStream, response: &Result<String, &str>) {
         Ok(r) => {
             stream.write(r.as_bytes()).unwrap();
             stream.flush().unwrap();
-        },
+        }
         Err(e) => {
             let mut err_msg = String::from("Error: ");
             err_msg.push_str(e);
@@ -61,6 +61,21 @@ fn send_response(stream: &mut TcpStream, response: &Result<String, &str>) {
     }
 }
 
+fn handle_stream(stream: &mut TcpStream, kv: &mut HashMap<String, String>) -> std::io::Result<()> {
+    let mut buffer = [0; 128];
+    let s_size = stream.read(&mut buffer)?;
+    let payload = str::from_utf8(&buffer[..s_size]);
+    let request = match payload {
+        Ok(p) => parse_payload(p),
+        Err(_) => Err("Payload error."),
+    };
+    let response = request.and_then(|req| process_request(req, kv));
+
+    println!("{:?}", response);
+    send_response(stream, &response);
+    Ok(())
+}
+
 fn main() -> std::io::Result<()> {
     let listener = TcpListener::bind("127.0.0.1:8080")?;
     let mut kv = HashMap::<String, String>::new();
@@ -68,19 +83,7 @@ fn main() -> std::io::Result<()> {
     for stream in listener.incoming() {
         match stream {
             Err(e) => println!("{}", e),
-            Ok(mut s) => {
-                let mut buffer = [0; 128];
-                let s_size = s.read(&mut buffer)?;
-                let payload = str::from_utf8(&buffer[..s_size]);
-                let request = match payload {
-                    Ok(p) => parse_payload(p),
-                    Err(_) => Err("Payload error."),
-                };
-                let response = request.and_then(|req| process_request(req, &mut kv));
-                
-                println!("{:?}", response);
-                send_response(&mut s, &response);
-            }
+            Ok(mut s) => handle_stream(&mut s, &mut kv)?,
         }
     }
     Ok(())
