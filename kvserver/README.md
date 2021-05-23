@@ -4,7 +4,7 @@ A simple in-memory key-value store over a TCP server.
 
 ## Learning goals:
 
-- implement a TCP server in Rust
+- implement a TCP server in Rust, using its multi-threaded model to handle requests
 - use more Rust language features (e.g. enums)
 
 ## Usage:

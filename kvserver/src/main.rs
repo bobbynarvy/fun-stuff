@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
+use std::thread;
+use std::sync::{Arc, Mutex};
 use std::str;
 
 #[derive(Debug)]
@@ -8,6 +10,8 @@ enum Request {
     Get(String),
     Set(String, String),
 }
+
+type KVStore = HashMap<String, String>;
 
 fn parse_payload(payload: &str) -> Result<Request, &'static str> {
     let mut parsed = payload.split_whitespace();
@@ -32,7 +36,7 @@ fn parse_payload(payload: &str) -> Result<Request, &'static str> {
     })
 }
 
-fn process_request(request: Request, kv: &mut HashMap<String, String>) -> Result<String, &str> {
+fn process_request(request: Request, kv: &mut KVStore) -> Result<String, &str> {
     match request {
         Request::Get(s) => match kv.get(&s) {
             Some(v) => Ok(v.to_string()),
@@ -61,7 +65,7 @@ fn send_response(stream: &mut TcpStream, response: &Result<String, &str>) {
     }
 }
 
-fn handle_stream(stream: &mut TcpStream, kv: &mut HashMap<String, String>) -> std::io::Result<()> {
+fn handle_stream(stream: &mut TcpStream, kv: &mut KVStore) -> std::io::Result<()> {
     let mut buffer = [0; 128];
     let s_size = stream.read(&mut buffer)?;
     let payload = str::from_utf8(&buffer[..s_size]);
@@ -78,13 +82,26 @@ fn handle_stream(stream: &mut TcpStream, kv: &mut HashMap<String, String>) -> st
 
 fn main() -> std::io::Result<()> {
     let listener = TcpListener::bind("127.0.0.1:8080")?;
-    let mut kv = HashMap::<String, String>::new();
+    let kv = HashMap::<String, String>::new();
+    let akv = Arc::new(Mutex::new(kv));
+    let mut handles = vec![];
 
     for stream in listener.incoming() {
-        match stream {
-            Err(e) => println!("{}", e),
-            Ok(mut s) => handle_stream(&mut s, &mut kv)?,
-        }
+        let akv = Arc::clone(&akv);
+        let handle = thread::spawn(move || {
+            let mut kv = akv.lock().unwrap();
+            match stream {
+                Err(e) => println!("{}", e),
+                Ok(mut s) => handle_stream(&mut s, &mut kv).unwrap(),
+            } 
+        });
+
+        handles.push(handle)        
     }
+
+    for handle in handles {
+        handle.join().unwrap();
+    }
+    
     Ok(())
 }
