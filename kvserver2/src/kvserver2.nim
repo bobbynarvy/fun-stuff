@@ -1,5 +1,6 @@
 import asyncnet, asyncdispatch
 import strutils
+import options
 import os
 import tables
 
@@ -8,24 +9,35 @@ type
 
 var clients {.threadvar.}: seq[AsyncSocket]
 
+proc getArg(args: seq[string], i: int): Option[string] = 
+  try:
+    result = some(args[i])
+  except:
+    result = none(string)
+
 proc processRequest(payload: string, kv: KV): string =
   let invalid_args = "Invalid arguments"
   let args = split(payload, " ") 
-  if args.len < 2:
-    result = invalid_args 
-  else:
-    let key = args[1]
-    result = case args[0]:
-      of "GET":
-        kv.getOrDefault(key, "Not found")
-      of "PUT":
-        if args.len < 3:
-          invalid_args
-        else:
-          kv[key] = args[2]
-          "OK"
-      else:
-        invalid_args
+  let command = getArg(args, 0)
+  if command.isNone:
+    return invalid_args
+  
+  let key = getArg(args, 1)
+  if key.isNone:
+    return invalid_args
+
+  case command.get:
+    of "GET":
+      kv.getOrDefault(key.get, "Not found")
+    of "PUT":
+      let val = getArg(args, 2)
+      if val.isNone:
+        return invalid_args
+
+      kv[key.get] = val.get
+      "OK"
+    else:
+      invalid_args
   
 proc processClient(client: AsyncSocket, kv: KV) {.async.} =
   while true:
