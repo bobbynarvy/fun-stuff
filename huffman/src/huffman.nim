@@ -1,2 +1,5 @@
+import coder
+
 when isMainModule:
-  echo "Hello, world!"
+  let text = "Hello, world!"
+  echo encode(text)
