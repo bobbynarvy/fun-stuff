@@ -11,7 +11,6 @@ type
 
 func initNodes(text: string): seq[Node] =
   var char_counts = initTable[char, int]()
-  var nodes: seq[Node] = @[]
 
   for c in text:
     if char_counts.hasKeyOrPut(c, 1):
@@ -22,9 +21,7 @@ func initNodes(text: string): seq[Node] =
       symbol: some(char),
       left: none(Node),
       right: none(Node))
-    nodes.add(node)
-
-  nodes
+    result.add(node)
 
 func mergeNodes(left: Node, right: Node): Node =
   Node(count: left.count + right.count,
@@ -64,16 +61,25 @@ func encodeChar(c: char, tree: Node, acc: string): Option[string] =
 
   return none(string)
 
-func encode*(text: string): string =
+# return the encoded string and table of encodings
+func encode*(text: string): (string, seq[Encoding]) =
   var nodes = initNodes(text)
   let tree = createTree(nodes)
-  
+  var encodingTable = initTable[char, string]()
   var code = ""
-  for c in text:
-    let charCode = encodeChar(c, tree, "0")
-    code.add(charCode.get)
+  var encodings: seq[Encoding] = @[]
 
-  code
+  for c in text:
+    if not encodingTable.hasKey(c):
+      let charCode = encodeChar(c, tree, "0").get
+      code.add(charCode)
+      encodingTable[c] = charCode
+      encodings.add((c, charCode))
+    else:
+      let charCode = encodingTable[c]
+      code.add(charCode)
+
+  (code, encodings)
 
 func insertNode(node: Node,c: char, bitstring: string) =
   if bitstring.len == 1:
@@ -96,7 +102,7 @@ func createTree(encodings: seq[Encoding]): Node =
 
   # The root node will always be empty.
   # Count doesn't matter for decoding.
-  var node = Node(count: 0, symbol: none(char), left: none(Node), right: none(Node))
+  result = Node(count: 0, symbol: none(char), left: none(Node), right: none(Node))
 
   # sort by string length to guarantee traversal
   # from root to lowest level
@@ -104,31 +110,26 @@ func createTree(encodings: seq[Encoding]): Node =
 
   # insert nodes from root node
   for encoding in encodings:
-    insertNode(node, encoding[0], encoding[1])
-
-  node
+    insertNode(result, encoding[0], encoding[1])
 
 # recursively look for the char in the encoded string;
 # return the char and the remaining encoded string
 func findChar(node: Node, code: string): (char, string) =
   if node.left == none(Node) and node.right == none(Node):
-    return (node.symbol.get, code)
+    result = (node.symbol.get, code)
   else:
     let bit = code[0] 
     let nextNode = if bit == '0': node.left.get else: node.right.get
-    return findChar(nextNode, code.substr(1))
+    result = findChar(nextNode, code.substr(1))
 
 func decode*(code: string, encodings: seq[Encoding]): string =
   let root = createTree(encodings)
-  var message = ""
   var remainingCode = code  
 
   while remainingCode.len != 0:
-    let result = findChar(root, remainingCode)
-    remainingCode = result[1]
-    message.add(result[0])
-
-  message
+    let (c, rem) = findChar(root, remainingCode)
+    remainingCode = rem 
+    result.add(c)
 
 when isMainModule:
   let text = "Hello, world!"
@@ -150,3 +151,7 @@ when isMainModule:
   doAssert findChar(root, "110") == ('C', "0")
 
   doAssert decode("11010011", encodings) == "CABAC"
+
+  let (code, encodingTable) = encode(text)
+  let decoded = decode(code, encodingTable)
+  doAssert decoded == text
