@@ -7,7 +7,7 @@ type
     count: int
     symbol: Option[char]
     left, right: Option[Node]
-  Encoding = (char, string)
+  Encoding* = (char, string)
 
 func initNodes(text: string): seq[Node] =
   var char_counts = initTable[char, int]()
