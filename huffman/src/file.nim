@@ -4,6 +4,8 @@ import sequtils
 import strutils
 import unicode
 
+# Note: this is probably incorrect.
+# Need to read up on character encodings
 proc compressFile(filepath: string) =
   let content = readFile(filepath)
   let (encoded, encodings) = encode(content)
