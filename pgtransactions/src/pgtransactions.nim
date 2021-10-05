@@ -9,11 +9,19 @@ import os
 
 var threads: array[0..2, Thread[void]]
 
+proc createDbConn(): DbConn =
+  let
+    host = getEnv("DB_HOST", "localhost")
+    user = getEnv("DB_USER", "postgres")
+    pass = getEnv("DB_PASS", "password")
+    name = getEnv("DB_NAME", "postgres")
+  db_postgres.open(host, user, pass, name)
+
 proc selectBruce(db: DbConn): seq[Row] =
   db.getAllRows(sql"""SELECT * FROM users WHERE email = 'bruce@wayne.com' FOR UPDATE""")
 
 proc thread1Proc () {.thread.} =
-  let db = db_postgres.open("localhost", "postgres", "password", "postgres")
+  let db = createDbConn()
   db.exec(sql"""BEGIN""")
 
   echo "Thread 1: starting transaction"
@@ -29,7 +37,7 @@ proc thread1Proc () {.thread.} =
   db.close()
 
 proc thread2Proc () {.thread.} =
-  let db = db_postgres.open("localhost", "postgres", "password", "postgres")
+  let db = createDbConn()
 
   # sleep initially so that thread 1 goes first
   sleep(1000)
@@ -40,7 +48,7 @@ proc thread2Proc () {.thread.} =
 
   db.close()
 
-let db = db_postgres.open("localhost", "postgres", "password", "postgres")
+let db = createDbConn()
 db.exec(sql"""CREATE TABLE IF NOT EXISTS users (
   id SERIAL,
   name VARCHAR(50) NOT NULL,
