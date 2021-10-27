@@ -1,0 +1,4 @@
+(executable
+ (public_name basic_ocaml_proj)
+ (name main)
+ (libraries basic_ocaml_proj lwt lwt.unix))

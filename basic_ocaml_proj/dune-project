@@ -1,0 +1,13 @@
+(lang dune 2.9)
+(name basic_ocaml_proj)
+
+(generate_opam_files true)
+
+(package
+  (name basic_ocaml_proj)
+  (description "learning how to build a basic ocaml project")
+  (depends
+   (dune (>= 2))
+   (ocaml (>= 4.08.0))
+   (lwt (>= 5.4))))
+
