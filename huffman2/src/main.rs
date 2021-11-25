@@ -32,6 +32,27 @@ fn init_nodes(text: String) -> Vec<Node> {
     nodes
 }
 
+fn merge_nodes(left: Node, right: Node) -> Node {
+    Node {
+        count: left.count + right.count,
+        node_type: NodeType::Internal(Box::new(left), Box::new(right)),
+    }
+}
+
+fn create_tree(mut nodes: Vec<Node>) -> Node {
+    while nodes.len() > 1 {
+        nodes.sort_by(|a, b| a.count.partial_cmp(&b.count).unwrap());
+
+        let left = nodes.pop().unwrap();
+        let right = nodes.pop().unwrap();
+
+        let newNode = merge_nodes(left, right);
+        nodes.push(newNode);
+    }
+
+    nodes.pop().unwrap()
+}
+
 fn main() {
     println!("Hello, world!");
 }
@@ -54,6 +75,29 @@ mod tests {
                 },
                 _ => (),
             }
+        }
+    }
+
+    #[test]
+    fn test_create_tree() {
+        let left = Node {
+            count: 1,
+            node_type: NodeType::Leaf('a'),
+        };
+        let right = Node {
+            count: 2,
+            node_type: NodeType::Leaf('b'),
+        };
+        let mut nodes = vec![left, right];
+        let tree = create_tree(nodes);
+
+        assert_eq!(tree.count, 3);
+        match tree.node_type {
+            NodeType::Internal(l, r) => {
+                assert_eq!(l.node_type, NodeType::Leaf('b'));
+                assert_eq!(r.node_type, NodeType::Leaf('a'));
+            }
+            _ => (),
         }
     }
 }
