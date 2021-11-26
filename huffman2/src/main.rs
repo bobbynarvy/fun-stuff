@@ -46,11 +46,29 @@ fn create_tree(mut nodes: Vec<Node>) -> Node {
         let left = nodes.pop().unwrap();
         let right = nodes.pop().unwrap();
 
-        let newNode = merge_nodes(left, right);
-        nodes.push(newNode);
+        let new_node = merge_nodes(left, right);
+        nodes.push(new_node);
     }
 
     nodes.pop().unwrap()
+}
+
+fn encode_char(c: char, tree: &Node, acc: String) -> Option<String> {
+    match &tree.node_type {
+        NodeType::Leaf(x) if *x == c => return Some(acc),
+        NodeType::Internal(l, r) => {
+            let left = encode_char(c, &l, acc.clone() + "0");
+            if left.is_some() {
+                return left;
+            }
+            let right = encode_char(c, &r, acc.clone() + "1");
+            if right.is_some() {
+                return right;
+            }
+            None
+        }
+        _ => None,
+    }
 }
 
 fn main() {
@@ -88,7 +106,7 @@ mod tests {
             count: 2,
             node_type: NodeType::Leaf('b'),
         };
-        let mut nodes = vec![left, right];
+        let nodes = vec![left, right];
         let tree = create_tree(nodes);
 
         assert_eq!(tree.count, 3);
@@ -99,5 +117,25 @@ mod tests {
             }
             _ => (),
         }
+    }
+
+    #[test]
+    fn test_encode_char() {
+        let left = Node {
+            count: 1,
+            node_type: NodeType::Leaf('a'),
+        };
+        let right = Node {
+            count: 2,
+            node_type: NodeType::Leaf('b'),
+        };
+        let tree = Node {
+            count: 3,
+            node_type: NodeType::Internal(Box::new(left), Box::new(right)),
+        };
+
+        let encoded = encode_char('a', &tree, String::from(""));
+        assert!(encoded.is_some());
+        assert_eq!(encoded.unwrap(), String::from("0"));
     }
 }
