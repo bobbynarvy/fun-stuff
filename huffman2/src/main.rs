@@ -41,7 +41,7 @@ fn merge_nodes(left: Node, right: Node) -> Node {
 
 fn create_tree(mut nodes: Vec<Node>) -> Node {
     while nodes.len() > 1 {
-        nodes.sort_by(|a, b| a.count.partial_cmp(&b.count).unwrap());
+        nodes.sort_by(|a, b| b.count.partial_cmp(&a.count).unwrap());
 
         let left = nodes.pop().unwrap();
         let right = nodes.pop().unwrap();
@@ -96,24 +96,25 @@ mod tests {
         }
     }
 
+    fn create_leaf_node(c: char, count: i8) -> Node {
+        Node {
+            count: count,
+            node_type: NodeType::Leaf(c),
+        }
+    }
+
     #[test]
     fn test_create_tree() {
-        let left = Node {
-            count: 1,
-            node_type: NodeType::Leaf('a'),
-        };
-        let right = Node {
-            count: 2,
-            node_type: NodeType::Leaf('b'),
-        };
+        let left = create_leaf_node('a', 1);
+        let right = create_leaf_node('b', 2);
         let nodes = vec![left, right];
         let tree = create_tree(nodes);
 
         assert_eq!(tree.count, 3);
         match tree.node_type {
             NodeType::Internal(l, r) => {
-                assert_eq!(l.node_type, NodeType::Leaf('b'));
-                assert_eq!(r.node_type, NodeType::Leaf('a'));
+                assert_eq!(l.node_type, NodeType::Leaf('a'));
+                assert_eq!(r.node_type, NodeType::Leaf('b'));
             }
             _ => (),
         }
@@ -121,21 +122,16 @@ mod tests {
 
     #[test]
     fn test_encode_char() {
-        let left = Node {
-            count: 1,
-            node_type: NodeType::Leaf('a'),
-        };
-        let right = Node {
-            count: 2,
-            node_type: NodeType::Leaf('b'),
-        };
-        let tree = Node {
-            count: 3,
-            node_type: NodeType::Internal(Box::new(left), Box::new(right)),
-        };
+        let n1 = create_leaf_node('a', 2);
+        let n2 = create_leaf_node('b', 3);
+        let n3 = create_leaf_node('c', 4);
+        let tree = create_tree(vec![n1, n2, n3]);
 
-        let encoded = encode_char('a', &tree, String::from(""));
+        let encoded = encode_char('a', &tree, String::from("0"));
         assert!(encoded.is_some());
-        assert_eq!(encoded.unwrap(), String::from("0"));
+        assert_eq!(encoded.unwrap(), String::from("010"));
+        let encoded2 = encode_char('c', &tree, String::from("0"));
+        assert!(encoded2.is_some());
+        assert_eq!(encoded2.unwrap(), String::from("00"));
     }
 }
