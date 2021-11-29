@@ -71,6 +71,31 @@ fn encode_char(c: char, tree: &Node, acc: String) -> Option<String> {
     }
 }
 
+fn encode(text: String) -> (String, Vec<Encoding>) {
+    let nodes = init_nodes(text.clone());
+    let tree = create_tree(nodes);
+    let mut encoding_map: HashMap<char, String> = HashMap::new();
+    let mut code = String::new();
+    let mut encodings: Vec<Encoding> = vec![];
+
+    for c in text.chars() {
+        match encoding_map.get(&c) {
+            Some(_) => {
+                let char_code = encoding_map.get(&c).unwrap();
+                code.push_str(char_code.as_str());
+            }
+            None => {
+                let char_code = encode_char(c, &tree, String::from("0")).unwrap();
+                code.push_str(char_code.as_str());
+                encoding_map.insert(c, char_code.clone());
+                encodings.push((c, char_code));
+            }
+        }
+    }
+
+    (code, encodings)
+}
+
 fn main() {
     println!("Hello, world!");
 }
@@ -133,5 +158,19 @@ mod tests {
         let encoded2 = encode_char('c', &tree, String::from("0"));
         assert!(encoded2.is_some());
         assert_eq!(encoded2.unwrap(), String::from("00"));
+    }
+
+    #[test]
+    fn test_encode() {
+        let (code, encodings) = encode(String::from("aabbbcccc"));
+        for encoding in encodings {
+            match encoding {
+                ('a', string) => assert_eq!(string, String::from("010")),
+                ('b', string) => assert_eq!(string, String::from("011")),
+                ('c', string) => assert_eq!(string, String::from("00")),
+                _ => (),
+            }
+        }
+        assert_eq!(code, "01001001101101100000000");
     }
 }
