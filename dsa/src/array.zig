@@ -23,10 +23,13 @@ fn reverse(comptime n: u8, array: *[n]u8) void {
     var start: usize = 0;
     var end: usize = n - 1;
 
-    while (start < end) : ({ start += 1; end -= 1; }) {
-      temp = array[start];
-      array[start] = array[end];
-      array[end] = temp;
+    while (start < end) : ({
+        start += 1;
+        end -= 1;
+    }) {
+        temp = array[start];
+        array[start] = array[end];
+        array[end] = temp;
     }
 }
 
