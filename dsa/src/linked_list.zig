@@ -36,7 +36,23 @@ fn LinkedList(comptime T: type) type {
                 current.next = node;
             } else {
                 self.head = node;
-                return;
+            }
+        }
+
+        pub fn delete(self: *Self, node: *Node) void {
+            if (self.head) |head| {
+                var current: *Node = head;
+
+                if (current == node) {
+                    self.head = current.next;
+                    return;
+                }
+
+                while (current.next != node) {
+                    current = current.next.?;
+                }
+
+                current.next = node.next;
             }
         }
     };
@@ -106,4 +122,45 @@ test "append to non-empty list" {
     try testing.expect(head == &n1);
     try testing.expect(head.next == &n2);
     try testing.expect(head.next.?.next == &n3);
+}
+
+test "delete node in non-empty list" {
+    var list = List.init();
+    var n1 = List.Node{ .data = 77 };
+    var n2 = List.Node{ .data = 88 };
+    var n3 = List.Node{ .data = 99 };
+
+    list.append(&n1);
+    list.append(&n2);
+    list.append(&n3);
+    list.delete(&n2);
+
+    var head = list.head.?;
+    try testing.expect(head == &n1);
+    try testing.expect(head.next == &n3);
+}
+
+test "delete head in non-empty list" {
+    var list = List.init();
+    var n1 = List.Node{ .data = 77 };
+    var n2 = List.Node{ .data = 88 };
+    var n3 = List.Node{ .data = 99 };
+
+    list.append(&n1);
+    list.append(&n2);
+    list.append(&n3);
+    list.delete(&n1);
+
+    var head = list.head.?;
+    try testing.expect(head == &n2);
+    try testing.expect(head.next == &n3);
+}
+
+test "delete node in empty list" {
+    var list = List.init();
+    var n1 = List.Node{ .data = 77 };
+
+    list.delete(&n1);
+
+    try testing.expect(list.head == null);
 }
