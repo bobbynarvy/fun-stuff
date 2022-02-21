@@ -12,6 +12,17 @@ fn LinkedList(comptime T: type) type {
                 node.next = self.next;
                 self.next = node;
             }
+
+            pub fn countChildren(self: *Node) usize {
+                var cnt: usize = 1;
+                var next_node = self.next;
+
+                while (next_node) |node| : (next_node = node.next) {
+                    cnt += 1;
+                }
+
+                return cnt;
+            }
         };
 
         head: ?*Node = null,
@@ -54,6 +65,12 @@ fn LinkedList(comptime T: type) type {
 
                 current.next = node.next;
             }
+        }
+
+        pub fn count(self: *Self) usize {
+            if (self.head == null) return 0;
+
+            return self.head.?.countChildren();
         }
     };
 }
@@ -163,4 +180,17 @@ test "delete node in empty list" {
     list.delete(&n1);
 
     try testing.expect(list.head == null);
+}
+
+test "count list" {
+    var list = List.init();
+    var n1 = List.Node{ .data = 77 };
+    var n2 = List.Node{ .data = 88 };
+    var n3 = List.Node{ .data = 99 };
+
+    list.append(&n1);
+    list.append(&n2);
+    list.append(&n3);
+
+    try testing.expect(list.count() == 3);
 }
