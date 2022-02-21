@@ -6,105 +6,104 @@ fn LinkedList(comptime T: type) type {
         const Self = @This();
         pub const Node = struct {
             data: T,
-            next: ?*Node,
+            next: ?*Node = null,
+
+            pub fn insertAfter(self: *Node, node: *Node) void {
+                node.next = self.next;
+                self.next = node;
+            }
         };
 
-        head: ?*Node,
-        end: ?*Node,
+        head: ?*Node = null,
 
         pub fn init() Self {
-            return Self{ .head = null, .end = null };
+            return Self{ .head = null };
         }
 
-        pub fn push(self: *Self, data: T) void {
+        pub fn push(self: *Self, node: *Node) void {
+            node.next = self.head;
+            self.head = node;
+        }
+
+        pub fn append(self: *Self, node: *Node) void {
             if (self.head) |head| {
-                const next = head;
-                self.head = &Node{
-                    .data = data,
-                    .next = next,
-                };
-            } else {
-                var node = Node{ .data = data, .next = null };
-                self.head = &node;
-                self.end = &node;
-            }
-        }
+                var current: *Node = head;
 
-        pub fn insertAfter(self: *Self, node: *Node, data: T) void {
-            if (node.next) |next| {
-                const tmp = next;
-                node.next = &Node{
-                    .data = data,
-                    .next = tmp,
-                };
-            } else {
-                var new_node = Node{ .data = data, .next = null };
-                node.next = &new_node;
-                self.end = &new_node;
-            }
-        }
+                while (current.next != null) {
+                    current = current.next.?;
+                }
 
-        pub fn append(self: *Self, data: T) void {
-            if (self.end) |end| {
-                const tmp = end;
-                var new_node = Node{ .data = data, .next = null };
-                self.end = &new_node;
-                tmp.next = &new_node;
+                current.next = node;
             } else {
-                self.push(data);
+                self.head = node;
+                return;
             }
         }
     };
 }
 
+const List = LinkedList(u8);
+
 test "push to empty list" {
-    var list = LinkedList(u8).init();
-    list.push(77);
-    try testing.expect(list.head.?.*.data == 77);
-    try testing.expect(list.end.?.*.data == 77);
+    var list = List.init();
+    var n1 = List.Node{ .data = 77 };
+
+    list.push(&n1);
+
+    try testing.expect(list.head == &n1);
 }
 
 test "push to non-empty list" {
-    var list = LinkedList(u8).init();
-    list.push(77);
-    list.push(88);
-    try testing.expect(list.head.?.*.data == 88);
-    try testing.expect(list.end.?.*.data == 77);
+    var list = List.init();
+    var n1 = List.Node{ .data = 77 };
+    var n2 = List.Node{ .data = 88 };
+
+    list.push(&n1);
+    list.push(&n2);
+
+    try testing.expect(list.head == &n2);
 }
 
 test "insert after node" {
-    var list = LinkedList(u8).init();
-    list.push(77);
-    list.push(88);
+    var list = List.init();
+    var n1 = List.Node{ .data = 77 };
+    var n2 = List.Node{ .data = 88 };
+    var n3 = List.Node{ .data = 99 };
+
+    list.push(&n1);
+    list.push(&n2);
 
     var node = list.head.?;
 
-    try testing.expect(node.next.?.*.data == 77);
-    list.insertAfter(node, 99);
-    try testing.expect(node.next.?.*.data == 99);
-}
+    try testing.expect(node.next == &n1);
 
-test "insert after the end node" {
-    var list = LinkedList(u8).init();
-    list.push(77);
+    n2.insertAfter(&n3);
 
-    var node = list.head.?;
-
-    list.insertAfter(node, 99);
-    try testing.expect(list.end == node.next.?);
+    try testing.expect(node.next == &n3);
+    try testing.expect(n3.next == &n1);
 }
 
 test "append to empty list" {
-    var list = LinkedList(u8).init();
-    list.append(77);
-    try testing.expect(list.head.?.*.data == 77);
-    try testing.expect(list.end.?.*.data == 77);
+    var list = List.init();
+    var n1 = List.Node{ .data = 77 };
+
+    list.append(&n1);
+
+    try testing.expect(list.head == &n1);
 }
 
 test "append to non-empty list" {
-    var list = LinkedList(u8).init();
-    list.push(77);
-    list.append(88);
-    try testing.expect(list.head.?.*.data == 77);
-    try testing.expect(list.end.?.*.data == 88);
+    var list = List.init();
+    var n1 = List.Node{ .data = 77 };
+    var n2 = List.Node{ .data = 88 };
+    var n3 = List.Node{ .data = 99 };
+
+    list.append(&n1);
+    list.append(&n2);
+    list.append(&n3);
+
+    var head = list.head.?;
+    try testing.expect(head == &n1);
+    try testing.expect(head.next == &n2);
+    try testing.expect(head.next.?.next == &n3);
 }
