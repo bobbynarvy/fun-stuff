@@ -41,23 +41,24 @@ func parsePayload(payload string) (*Request, error) {
 
 func processRequest(request *Request, kv KVStore) (string, error) {
 	key := request.value[0]
+	okResult := "OK\n"
 
 	switch request.method {
 	case "GET":
 		if val, ok := kv[key]; ok {
 			log.Printf("GET %s => %s", key, val)
-			return val, nil
+			return okResult, nil
 		}
 
-		return "", fmt.Errorf("Value not found for %s.", key)
+		return "", fmt.Errorf("ERROR Value not found for %s.", key)
 	case "SET":
 		val := request.value[1]
 		kv[key] = val
 		log.Printf("SET %s to %s", key, val)
 
-		return fmt.Sprintf("Updated value of %s with %s", key, val), nil
+		return okResult, nil
 	default:
-		return "", errors.New("Invalid method.")
+		return "", errors.New("ERROR Invalid method.")
 	}
 }
 
@@ -104,7 +105,7 @@ func Serve() {
 
 		if err := handleConn(conn, kv); err != nil {
 			log.Println(err)
-			conn.Write([]byte(err.Error()))
+			conn.Write([]byte(err.Error() + "\n"))
 			conn.Close()
 		}
 	}
