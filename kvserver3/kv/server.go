@@ -41,48 +41,57 @@ func parsePayload(payload string) (*Request, error) {
 
 func processRequest(request *Request, kv KVStore) (string, error) {
 	key := request.value[0]
-	okResult := "OK\n"
 
 	switch request.method {
 	case "GET":
 		if val, ok := kv[key]; ok {
 			log.Printf("GET %s => %s", key, val)
-			return okResult, nil
+			return val, nil
 		}
 
-		return "", fmt.Errorf("ERROR Value not found for %s.", key)
+		return "", fmt.Errorf("Value not found for %s.", key)
 	case "SET":
 		val := request.value[1]
 		kv[key] = val
 		log.Printf("SET %s to %s", key, val)
 
-		return okResult, nil
+		return val, nil
 	default:
-		return "", errors.New("ERROR Invalid method.")
+		return "", errors.New("Invalid method.")
 	}
+}
+
+func writeResponse(conn net.Conn, successResp string, errorResp error) {
+	if errorResp != nil {
+		conn.Write([]byte(fmt.Sprintf("ERROR %s\n", errorResp.Error())))
+		conn.Close()
+		return
+	}
+
+	conn.Write([]byte(fmt.Sprintf("OK %s\n", successResp)))
+	conn.Close()
 }
 
 func handleConn(conn net.Conn, kv KVStore) error {
 	buffer := make([]byte, 1024)
 	n, err := conn.Read(buffer)
 	if err != nil {
-		return err
+		writeResponse(conn, "", errors.New(err.Error()))
 	}
 
 	payload := string(buffer[:n])
 	log.Printf("Received payload: %s", payload)
 	request, err := parsePayload(payload)
 	if err != nil {
-		return err
+		writeResponse(conn, "", err)
 	}
 
 	response, err := processRequest(request, kv)
 	if err != nil {
-		return err
+		writeResponse(conn, "", err)
 	}
 
-	conn.Write([]byte(response))
-	conn.Close()
+	writeResponse(conn, response, nil)
 
 	return nil
 }
@@ -103,10 +112,6 @@ func Serve() {
 			log.Fatal(err)
 		}
 
-		if err := handleConn(conn, kv); err != nil {
-			log.Println(err)
-			conn.Write([]byte(err.Error() + "\n"))
-			conn.Close()
-		}
+		handleConn(conn, kv)
 	}
 }

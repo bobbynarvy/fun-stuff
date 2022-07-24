@@ -2,12 +2,37 @@ package kv
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"net"
+	"strings"
 )
 
 type Client struct {
 	Address string
+}
+
+func parseResponseString(conn net.Conn) (string, error) {
+	respStr, err := bufio.NewReader(conn).ReadString('\n')
+	if err != nil {
+		return "", err
+	}
+
+	trimmed := strings.Trim(respStr, "\n")
+	parsed := strings.Split(trimmed, " ")
+
+	if len(parsed) == 0 {
+		return "", errors.New("Response invalid")
+	}
+
+	switch parsed[0] {
+	case "OK":
+		return parsed[1], nil
+	case "ERROR":
+		return "", errors.New(strings.Join(parsed[1:], " "))
+	}
+
+	return "", errors.New("Unexpected error")
 }
 
 func (c Client) Get(key string) (string, error) {
@@ -19,12 +44,7 @@ func (c Client) Get(key string) (string, error) {
 
 	fmt.Fprintf(conn, "GET %s\r\n", key)
 
-	val, err := bufio.NewReader(conn).ReadString('\n')
-	if err != nil {
-		return "", err
-	}
-
-	return val, nil
+	return parseResponseString(conn)
 }
 
 func (c Client) Set(key string, value string) (string, error) {
@@ -36,10 +56,5 @@ func (c Client) Set(key string, value string) (string, error) {
 
 	fmt.Fprintf(conn, "SET %s %s\r\n", key, value)
 
-	status, err := bufio.NewReader(conn).ReadString('\n')
-	if err != nil {
-		return "", err
-	}
-
-	return status, nil
+	return parseResponseString(conn)
 }
