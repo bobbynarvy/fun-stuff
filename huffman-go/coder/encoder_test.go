@@ -43,13 +43,13 @@ func TestEncode(t *testing.T) {
 	encoding := Encode("aabbbcccc")
 
 	assertPairCode := func(pair *EncodingPair, code string) {
-		if code != pair.code {
-			t.Errorf("incorrect encoding for %s; expected %s, got %s", string(pair.char), code, pair.code)
+		if code != pair.Code {
+			t.Errorf("incorrect encoding for %s; expected %s, got %s", string(pair.Char), code, pair.Code)
 		}
 	}
 
-	for _, pair := range encoding.pairs {
-		switch char := string(pair.char); char {
+	for _, pair := range encoding.Pairs {
+		switch char := string(pair.Char); char {
 		case "a":
 			assertPairCode(&pair, "010")
 		case "b":

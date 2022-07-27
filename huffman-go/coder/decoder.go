@@ -8,10 +8,10 @@ func Decode(encodedText string, encodings []EncodingPair) string {
 
 	for len(code) > 0 {
 		for _, encoding := range encodings {
-			sub := code[0:len(encoding.code)]
-			if sub == encoding.code {
-				decoded = decoded + string(encoding.char)
-				code = code[len(encoding.code):]
+			sub := code[0:len(encoding.Code)]
+			if sub == encoding.Code {
+				decoded = decoded + string(encoding.Char)
+				code = code[len(encoding.Code):]
 			}
 
 			if len(code) == 0 {

@@ -12,13 +12,13 @@ type Node struct {
 }
 
 type EncodingPair struct {
-	char rune
-	code string
+	Char rune
+	Code string
 }
 
 type Encoding struct {
-	codedText string
-	pairs     []EncodingPair
+	CodedText string
+	Pairs     []EncodingPair
 }
 
 func initNodes(text string) []Node {
