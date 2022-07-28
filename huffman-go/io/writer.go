@@ -7,10 +7,6 @@ import (
 )
 
 func WriteEncodingToFile(encoding *coder.Encoding, fileName string) {
-	if fileName == "" {
-		fileName = "encoded.huff"
-	}
-
 	file, err := os.Create(fileName)
 	if err != nil {
 		fmt.Println(err)
@@ -20,7 +16,8 @@ func WriteEncodingToFile(encoding *coder.Encoding, fileName string) {
 	// Write the number of encoding pairs
 	file.WriteString(fmt.Sprintf("%d\n", len(encoding.Pairs)))
 
-	// Write one encoding pair per line, separate by comma
+	// Write the encoding table
+	// Write one encoding pair per line, separate by space
 	for _, pair := range encoding.Pairs {
 		file.WriteString(fmt.Sprintf("%v %v\n", pair.Char, pair.Code))
 	}
