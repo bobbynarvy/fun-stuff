@@ -2,10 +2,14 @@ package main
 
 import (
 	"fmt"
-	"huffman/coder"
+	"huffman/io"
+	"os"
 )
 
 func main() {
-	text := "hello world!"
-	fmt.Println(coder.Encode(text))
+	err := io.Run()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
 }
