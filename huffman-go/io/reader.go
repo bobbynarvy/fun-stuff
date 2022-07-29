@@ -10,10 +10,6 @@ import (
 )
 
 func DecodeFromFile(fileName string) (string, error) {
-	if fileName == "" {
-		fileName = "encoded.huff"
-	}
-
 	file, err := os.Open(fileName)
 	if err != nil {
 		return "", err
