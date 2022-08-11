@@ -9,12 +9,12 @@ import (
 )
 
 type Author struct {
-	ID   int32
-	Name string
+	ID   int32  `json:"id"`
+	Name string `json:"name"`
 }
 
 type Quote struct {
-	ID       int32
-	AuthorID sql.NullInt32
-	Quote    string
+	ID       int32         `json:"id"`
+	AuthorID sql.NullInt32 `json:"author_id"`
+	Quote    string        `json:"quote"`
 }

@@ -29,9 +29,9 @@ WHERE q.id = $1
 `
 
 type GetQuoteRow struct {
-	ID     int32
-	Quote  string
-	Author string
+	ID     int32  `json:"id"`
+	Quote  string `json:"quote"`
+	Author string `json:"author"`
 }
 
 func (q *Queries) GetQuote(ctx context.Context) (GetQuoteRow, error) {
@@ -49,9 +49,9 @@ WHERE a.id = $1
 `
 
 type GetQuotesByAuthorRow struct {
-	ID     int32
-	Quote  string
-	Author string
+	ID     int32  `json:"id"`
+	Quote  string `json:"quote"`
+	Author string `json:"author"`
 }
 
 func (q *Queries) GetQuotesByAuthor(ctx context.Context) ([]GetQuotesByAuthorRow, error) {
@@ -112,9 +112,9 @@ INNER JOIN authors a ON q.author_id = a.id
 `
 
 type ListQuotesRow struct {
-	ID     int32
-	Quote  string
-	Author string
+	ID     int32  `json:"id"`
+	Quote  string `json:"quote"`
+	Author string `json:"author"`
 }
 
 func (q *Queries) ListQuotes(ctx context.Context) ([]ListQuotesRow, error) {

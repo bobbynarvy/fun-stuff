@@ -5,3 +5,4 @@ packages:
     engine: "mysql"
     schema: "db/schema.sql"
     queries: "db/query.sql"
+    emit_json_tags: true
