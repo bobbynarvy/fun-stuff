@@ -11,11 +11,11 @@ import (
 
 const getAuthor = `-- name: GetAuthor :one
 SELECT id, name FROM authors
-WHERE id = $1
+WHERE id = ?
 `
 
-func (q *Queries) GetAuthor(ctx context.Context) (Author, error) {
-	row := q.db.QueryRowContext(ctx, getAuthor)
+func (q *Queries) GetAuthor(ctx context.Context, id int32) (Author, error) {
+	row := q.db.QueryRowContext(ctx, getAuthor, id)
 	var i Author
 	err := row.Scan(&i.ID, &i.Name)
 	return i, err
@@ -25,7 +25,7 @@ const getQuote = `-- name: GetQuote :one
 SELECT q.id, q.quote, a.name AS author
 FROM quotes q
 INNER JOIN authors a ON q.author_id = a.id
-WHERE q.id = $1
+WHERE q.id = ?
 `
 
 type GetQuoteRow struct {
@@ -34,8 +34,8 @@ type GetQuoteRow struct {
 	Author string `json:"author"`
 }
 
-func (q *Queries) GetQuote(ctx context.Context) (GetQuoteRow, error) {
-	row := q.db.QueryRowContext(ctx, getQuote)
+func (q *Queries) GetQuote(ctx context.Context, id int32) (GetQuoteRow, error) {
+	row := q.db.QueryRowContext(ctx, getQuote, id)
 	var i GetQuoteRow
 	err := row.Scan(&i.ID, &i.Quote, &i.Author)
 	return i, err
@@ -45,7 +45,7 @@ const getQuotesByAuthor = `-- name: GetQuotesByAuthor :many
 SELECT q.id, q.quote, a.name AS author
 FROM quotes q
 INNER JOIN authors a ON q.author_id = a.id
-WHERE a.id = $1
+WHERE a.id = ?
 `
 
 type GetQuotesByAuthorRow struct {
@@ -54,8 +54,8 @@ type GetQuotesByAuthorRow struct {
 	Author string `json:"author"`
 }
 
-func (q *Queries) GetQuotesByAuthor(ctx context.Context) ([]GetQuotesByAuthorRow, error) {
-	rows, err := q.db.QueryContext(ctx, getQuotesByAuthor)
+func (q *Queries) GetQuotesByAuthor(ctx context.Context, id int32) ([]GetQuotesByAuthorRow, error) {
+	rows, err := q.db.QueryContext(ctx, getQuotesByAuthor, id)
 	if err != nil {
 		return nil, err
 	}
