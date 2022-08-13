@@ -10,28 +10,26 @@ import (
 	"quotes/data"
 )
 
-func authorsHandler(w http.ResponseWriter, req *http.Request) {
-	db, err := connect()
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-
-	queries := data.New(db)
-
-	ctx := context.Background()
-	authors, err := queries.ListAuthors(ctx)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println("GET /authors")
-	json.NewEncoder(w).Encode(authors)
+type Env struct {
+	Queries *data.Queries
 }
 
-func Serve() {
+func authorsHandler(env *Env) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		ctx := context.Background()
+		authors, err := env.Queries.ListAuthors(ctx)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Println("GET /authors")
+		json.NewEncoder(w).Encode(authors)
+	}
+}
+
+func Serve(env *Env) {
 	r := mux.NewRouter()
-	r.HandleFunc("/authors", authorsHandler).Methods("GET")
+	r.HandleFunc("/authors", authorsHandler(env)).Methods("GET")
 	http.Handle("/", r)
 	http.ListenAndServe(":8080", nil)
 }

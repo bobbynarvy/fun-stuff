@@ -15,7 +15,7 @@ func getEnv(key, fallback string) string {
 	return fallback
 }
 
-func connect() (*sql.DB, error) {
+func Connect() (*sql.DB, error) {
 	dbHost := getEnv("MYSQL_HOST", "localhost")
 	dbPort := getEnv("MYSQL_PORT", "3306")
 	dbUser := getEnv("MYSQL_USER", "root")
