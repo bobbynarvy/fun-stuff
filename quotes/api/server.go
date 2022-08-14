@@ -2,8 +2,9 @@ package api
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
-	"fmt"
+	"errors"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
@@ -15,22 +16,29 @@ type Env struct {
 	Queries *data.Queries
 }
 
+var AuthorNotFound = "Author not found"
+
 func strToi32(str string) int32 {
 	str64, _ := strconv.ParseInt(str, 10, 64)
 	return int32(str64)
 }
 
+func errResp(w *http.ResponseWriter, err error, msg string, status int) {
+	http.Error(*w, msg, status)
+	log.Println(err.Error())
+}
+
 func authorsHandler(env *Env) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
+		log.Println("GET /authors")
 
 		ctx := context.Background()
 		authors, err := env.Queries.ListAuthors(ctx)
 		if err != nil {
-			log.Fatal(err)
+			errResp(&w, err, "Unexpected error", 500)
 		}
 
-		fmt.Println("GET /authors")
 		json.NewEncoder(w).Encode(authors)
 	}
 }
@@ -42,13 +50,19 @@ func authorHandler(env *Env) http.HandlerFunc {
 		ctx := context.Background()
 		vars := mux.Vars(req)
 		id := strToi32(vars["id"])
+		log.Printf("GET /authors/%s\n", vars["id"])
 
 		author, err := env.Queries.GetAuthor(ctx, id)
 		if err != nil {
-			log.Fatal(err)
+			switch err {
+			case sql.ErrNoRows:
+				errResp(&w, err, AuthorNotFound, 404)
+			default:
+				errResp(&w, err, "Unexpected error", 500)
+			}
+			return
 		}
 
-		fmt.Printf("GET /authors/%s\n", vars["id"])
 		json.NewEncoder(w).Encode(author)
 	}
 }
@@ -61,23 +75,28 @@ func quotesHandler(env *Env) http.HandlerFunc {
 
 		if authorId := req.URL.Query().Get("author-id"); authorId != "" {
 			id := strToi32(authorId)
-			quotes, err := env.Queries.GetQuotesByAuthor(ctx, id)
+			log.Printf("GET /quotes?author-id=%s\n", authorId)
 
+			quotes, err := env.Queries.GetQuotesByAuthor(ctx, id)
+			if quotes == nil {
+				errResp(&w, errors.New(AuthorNotFound), AuthorNotFound, 404)
+				return
+			}
 			if err != nil {
-				log.Fatal(err)
+				errResp(&w, err, "Unexpected error", 500)
 			}
 
-			fmt.Printf("GET /quotes?author-id=%s\n", authorId)
 			json.NewEncoder(w).Encode(quotes)
 			return
 		}
 
+		log.Println("GET /quotes")
 		quotes, err := env.Queries.ListQuotes(ctx)
 		if err != nil {
-			log.Fatal(err)
+			errResp(&w, err, "Unexpected error", 500)
+			return
 		}
 
-		fmt.Println("GET /quotes")
 		json.NewEncoder(w).Encode(quotes)
 	}
 }
