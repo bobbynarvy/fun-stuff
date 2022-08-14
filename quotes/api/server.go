@@ -15,6 +15,11 @@ type Env struct {
 	Queries *data.Queries
 }
 
+func strToi32(str string) int32 {
+	str64, _ := strconv.ParseInt(str, 10, 64)
+	return int32(str64)
+}
+
 func authorsHandler(env *Env) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		ctx := context.Background()
@@ -32,15 +37,14 @@ func authorHandler(env *Env) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		ctx := context.Background()
 		vars := mux.Vars(req)
-		id64, _ := strconv.ParseInt(vars["id"], 10, 64)
-		id := int32(id64)
+		id := strToi32(vars["id"])
 
 		author, err := env.Queries.GetAuthor(ctx, id)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("GET /authors/%s", vars["id"])
+		fmt.Printf("GET /authors/%s\n", vars["id"])
 		json.NewEncoder(w).Encode(author)
 	}
 }
@@ -48,6 +52,20 @@ func authorHandler(env *Env) http.HandlerFunc {
 func quotesHandler(env *Env) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		ctx := context.Background()
+
+		if authorId := req.URL.Query().Get("author-id"); authorId != "" {
+			id := strToi32(authorId)
+			quotes, err := env.Queries.GetQuotesByAuthor(ctx, id)
+
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			fmt.Printf("GET /quotes?author-id=%s\n", authorId)
+			json.NewEncoder(w).Encode(quotes)
+			return
+		}
+
 		quotes, err := env.Queries.ListQuotes(ctx)
 		if err != nil {
 			log.Fatal(err)
