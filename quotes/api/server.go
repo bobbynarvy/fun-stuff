@@ -7,9 +7,14 @@ import (
 	"errors"
 	"github.com/gorilla/mux"
 	"log"
+	"net"
 	"net/http"
+	"os"
+	"os/signal"
 	"quotes/data"
 	"strconv"
+    "golang.org/x/sync/errgroup"
+	"syscall"
 )
 
 type Env struct {
@@ -105,12 +110,36 @@ func quotesHandler(env *Env) http.HandlerFunc {
 }
 
 func Serve(env *Env) {
-	port := "8080"
-	log.Printf("Starting quotes server. Listening at port %s\n", port)
+	mainCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
 	r := mux.NewRouter()
 	r.HandleFunc("/authors", authorsHandler(env)).Methods("GET")
 	r.HandleFunc("/authors/{id:[0-9]+}", authorHandler(env)).Methods("GET")
 	r.HandleFunc("/quotes", quotesHandler(env)).Methods("GET")
-	http.Handle("/", r)
-	http.ListenAndServe(":"+port, nil)
+
+    port := ":8080"
+	httpServer := &http.Server{
+		Addr:    port,
+		Handler: r,
+		BaseContext: func(_ net.Listener) context.Context {
+			return mainCtx
+		},
+	}
+
+	g, gCtx := errgroup.WithContext(mainCtx)
+	g.Go(func() error {
+		log.Printf("Starting quotes server. Listening at port %s\n", port)
+		return httpServer.ListenAndServe()
+	})
+
+	g.Go(func() error {
+		<-gCtx.Done()
+		log.Println("Shutting down server")
+		return httpServer.Shutdown(context.Background())
+	})
+
+	if err := g.Wait(); err != nil {
+		log.Printf("Exited: %s \n", err)
+	}
 }
