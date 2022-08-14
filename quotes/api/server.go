@@ -22,6 +22,8 @@ func strToi32(str string) int32 {
 
 func authorsHandler(env *Env) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
 		ctx := context.Background()
 		authors, err := env.Queries.ListAuthors(ctx)
 		if err != nil {
@@ -35,6 +37,8 @@ func authorsHandler(env *Env) http.HandlerFunc {
 
 func authorHandler(env *Env) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
 		ctx := context.Background()
 		vars := mux.Vars(req)
 		id := strToi32(vars["id"])
@@ -51,6 +55,8 @@ func authorHandler(env *Env) http.HandlerFunc {
 
 func quotesHandler(env *Env) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
 		ctx := context.Background()
 
 		if authorId := req.URL.Query().Get("author-id"); authorId != "" {
