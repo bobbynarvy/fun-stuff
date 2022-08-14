@@ -105,10 +105,12 @@ func quotesHandler(env *Env) http.HandlerFunc {
 }
 
 func Serve(env *Env) {
+	port := "8080"
+	log.Printf("Starting quotes server. Listening at port %s\n", port)
 	r := mux.NewRouter()
 	r.HandleFunc("/authors", authorsHandler(env)).Methods("GET")
 	r.HandleFunc("/authors/{id:[0-9]+}", authorHandler(env)).Methods("GET")
 	r.HandleFunc("/quotes", quotesHandler(env)).Methods("GET")
 	http.Handle("/", r)
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":"+port, nil)
 }
