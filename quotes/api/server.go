@@ -17,6 +17,7 @@ type Env struct {
 }
 
 var AuthorNotFound = "Author not found"
+var UnexpectedError = "Unexpected error"
 
 func strToi32(str string) int32 {
 	str64, _ := strconv.ParseInt(str, 10, 64)
@@ -36,7 +37,8 @@ func authorsHandler(env *Env) http.HandlerFunc {
 		ctx := context.Background()
 		authors, err := env.Queries.ListAuthors(ctx)
 		if err != nil {
-			errResp(&w, err, "Unexpected error", 500)
+			errResp(&w, err, UnexpectedError, 500)
+			return
 		}
 
 		json.NewEncoder(w).Encode(authors)
@@ -58,7 +60,7 @@ func authorHandler(env *Env) http.HandlerFunc {
 			case sql.ErrNoRows:
 				errResp(&w, err, AuthorNotFound, 404)
 			default:
-				errResp(&w, err, "Unexpected error", 500)
+				errResp(&w, err, UnexpectedError, 500)
 			}
 			return
 		}
@@ -83,7 +85,8 @@ func quotesHandler(env *Env) http.HandlerFunc {
 				return
 			}
 			if err != nil {
-				errResp(&w, err, "Unexpected error", 500)
+				errResp(&w, err, UnexpectedError, 500)
+				return
 			}
 
 			json.NewEncoder(w).Encode(quotes)
@@ -93,7 +96,7 @@ func quotesHandler(env *Env) http.HandlerFunc {
 		log.Println("GET /quotes")
 		quotes, err := env.Queries.ListQuotes(ctx)
 		if err != nil {
-			errResp(&w, err, "Unexpected error", 500)
+			errResp(&w, err, UnexpectedError, 500)
 			return
 		}
 
