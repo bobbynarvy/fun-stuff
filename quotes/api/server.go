@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/gorilla/mux"
+	"golang.org/x/sync/errgroup"
 	"log"
 	"net"
 	"net/http"
@@ -13,12 +14,12 @@ import (
 	"os/signal"
 	"quotes/data"
 	"strconv"
-    "golang.org/x/sync/errgroup"
 	"syscall"
 )
 
 type Env struct {
 	Queries *data.Queries
+	Context *context.Context // context to be used for cancellation when provided
 }
 
 var AuthorNotFound = "Author not found"
@@ -39,7 +40,7 @@ func authorsHandler(env *Env) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		log.Println("GET /authors")
 
-		ctx := context.Background()
+		ctx, _ := context.WithCancel(*env.Context)
 		authors, err := env.Queries.ListAuthors(ctx)
 		if err != nil {
 			errResp(&w, err, UnexpectedError, 500)
@@ -54,7 +55,7 @@ func authorHandler(env *Env) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
-		ctx := context.Background()
+		ctx, _ := context.WithCancel(*env.Context)
 		vars := mux.Vars(req)
 		id := strToi32(vars["id"])
 		log.Printf("GET /authors/%s\n", vars["id"])
@@ -78,8 +79,7 @@ func quotesHandler(env *Env) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
-		ctx := context.Background()
-
+		ctx, _ := context.WithCancel(*env.Context)
 		if authorId := req.URL.Query().Get("author-id"); authorId != "" {
 			id := strToi32(authorId)
 			log.Printf("GET /quotes?author-id=%s\n", authorId)
@@ -110,7 +110,12 @@ func quotesHandler(env *Env) http.HandlerFunc {
 }
 
 func Serve(env *Env) {
-	mainCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	ctx, _ := context.WithCancel(context.Background())
+	if env.Context != nil {
+		ctx, _ = context.WithCancel(*env.Context)
+	}
+
+	mainCtx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
 	r := mux.NewRouter()
@@ -118,7 +123,7 @@ func Serve(env *Env) {
 	r.HandleFunc("/authors/{id:[0-9]+}", authorHandler(env)).Methods("GET")
 	r.HandleFunc("/quotes", quotesHandler(env)).Methods("GET")
 
-    port := ":8080"
+	port := ":8080"
 	httpServer := &http.Server{
 		Addr:    port,
 		Handler: r,
