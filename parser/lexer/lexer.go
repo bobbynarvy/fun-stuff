@@ -32,15 +32,17 @@ const (
 	False
 	True
 	Nil
+
+	Eof
 )
 
 type Token struct {
-	tokenType TokenType
-	lexeme    string
+	TokenType TokenType
+	Lexeme    string
 }
 
 func (token Token) String() string {
-	return fmt.Sprintf("[%v: %s]", token.tokenType, token.lexeme)
+	return fmt.Sprintf("[%v: %s]", token.TokenType, token.Lexeme)
 }
 
 type scanner struct {
@@ -113,11 +115,11 @@ func (s *scanner) matchOperator(expected rune, def TokenType, alt TokenType) Tok
 	return token
 }
 
-func (s *scanner) addToken(tokenType TokenType) {
+func (s *scanner) addToken(TokenType TokenType) {
 	text := s.source[s.start:s.current]
 	token := Token{
-		tokenType: tokenType,
-		lexeme:    text,
+		TokenType: TokenType,
+		Lexeme:    text,
 	}
 
 	s.tokens = append(s.tokens, token)
@@ -246,5 +248,6 @@ func ScanTokens(source string) ([]Token, error) {
 		}
 	}
 
+	scanner.addToken(Eof)
 	return scanner.tokens, nil
 }

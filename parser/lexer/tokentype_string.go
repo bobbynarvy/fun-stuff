@@ -26,11 +26,12 @@ func _() {
 	_ = x[False-15]
 	_ = x[True-16]
 	_ = x[Nil-17]
+	_ = x[Eof-18]
 }
 
-const _TokenType_name = "LeftParenRightParenMinusPlusSlashStarBangBangEqualEqualEqualGreaterGreaterEqualLessLessEqualStringNumberFalseTrueNil"
+const _TokenType_name = "LeftParenRightParenMinusPlusSlashStarBangBangEqualEqualEqualGreaterGreaterEqualLessLessEqualStringNumberFalseTrueNilEof"
 
-var _TokenType_index = [...]uint8{0, 9, 19, 24, 28, 33, 37, 41, 50, 60, 67, 79, 83, 92, 98, 104, 109, 113, 116}
+var _TokenType_index = [...]uint8{0, 9, 19, 24, 28, 33, 37, 41, 50, 60, 67, 79, 83, 92, 98, 104, 109, 113, 116, 119}
 
 func (i TokenType) String() string {
 	if i < 0 || i >= TokenType(len(_TokenType_index)-1) {
