@@ -1,0 +1,13 @@
+name: brainfuck
+version: 0.1.0
+
+authors:
+  - Robert Narvaez <narvaez.rm@gmail.com>
+
+targets:
+  brainfuck:
+    main: src/brainfuck.cr
+
+crystal: 1.9.2
+
+license: MIT
