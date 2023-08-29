@@ -5,13 +5,10 @@ module Brainfuck
     @cells : Array(UInt8)
     @src : String
 
-    setter get_byte : -> UInt8
-
     def initialize(@src)
       @ip = 0
       @dp = 0
       @cells = Array(UInt8).new(30_000, 0)
-      @get_byte = ->{ 0_u8 }
       @bracemap = Hash(Int32, Int32).new
 
       create_bracemap
@@ -37,7 +34,7 @@ module Brainfuck
         # I don't know yet how to convert bytes to chars :P
         puts '\u0000' + byte
       when ','
-        @cells[@dp] = @get_byte.call
+        @cells[@dp] = get_user_byte
       end
 
       case
@@ -71,7 +68,21 @@ module Brainfuck
         end
       end
     end
-  end
 
-  # TODO: Figure out how to get user input
+    private def get_user_byte : UInt8
+      puts "Please enter a number between 0 and 255"
+      input = gets
+      if input.nil? || input == ""
+        return 0_u8
+      end
+
+      num = input.to_u32
+      if num > 255
+        puts "Invalid input."
+        return get_user_byte
+      end
+
+      return num.to_u8
+    end
+  end
 end
