@@ -85,4 +85,12 @@ module Brainfuck
       return num.to_u8
     end
   end
+
+  if ARGV.empty?
+    puts "No path provided."
+  else
+    file_contents = ARGF.gets_to_end
+    vm = VM.new file_contents
+    vm.run
+  end
 end
