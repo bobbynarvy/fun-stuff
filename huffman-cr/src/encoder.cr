@@ -39,12 +39,23 @@ module Huffman
     end
 
     def encode
+      check_ascii
       calc_freqs
       root = create_root_node
       enc_map = Hash(Char, String).new
       root.get_code(enc_map, "")
       bit_string = @src.chars.map { |c| enc_map[c] }.join
       {enc_map, bit_string}
+    end
+
+    # Checks if the characters in the source data are ASCII.
+    # Character set is limited to ASCII for simplification purposes.
+    private def check_ascii
+      @src.each_char do |char|
+        unless char.ascii?
+          raise "Non-ASCII characters are not permitted."
+        end
+      end
     end
 
     private def calc_freqs
