@@ -7,9 +7,11 @@ This repository contains code written for fun (e.g. solutions to coding challeng
 | **Project**      | **Description**                                         | **Language** |
 |------------------|---------------------------------------------------------|--------------|
 | basic_ocaml_proj | learning how to create a basic OCaml project            | OCaml        |
+| brainfuck        | a Brainfuck interpreter                                 | Crystal      |
 | dsa              | data structures and algorithms                          | Zig          |
 | euler            | solutions to problems on Project Euler                  | F#           |
-| huffman-go       | encode and decode text using Huffman coding             | Go           |
+| huffman-cr       | encode and decode text using Huffman coding             | Crystal      |
+| huffman-go       | same as above                                           | Go           |
 | huffman-nim      | same as above                                           | Nim          |
 | huffman-rs       | same as above                                           | Rust         |
 | huffman-zig      | same as above                                           | Zig          |
