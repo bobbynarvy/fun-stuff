@@ -22,6 +22,7 @@ This repository contains code written for fun (e.g. solutions to coding challeng
 | morse-zig        | same as above                                           | Zig          |
 | ocaml99          | solutions to 99 Problems (solved) in OCaml              | OCaml        |
 | parser           | an arithmetic expression parser                         | Go           |
+| pratt            | a Pratt parser                                          | Crystal      |
 | pgskiplocked     | playing with Postgres SKIP LOCKED                       | Nim          |
 | pgtransactions   | playing with Postgres transactions                      | Nim          |
 | quotes           | a simple web service that provides inspiring quotations | Go           |

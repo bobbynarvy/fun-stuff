@@ -1,0 +1,9 @@
+name: pratt
+version: 0.1.0
+
+authors:
+  - Robert Narvaez <narvaez.rm@gmail.com>
+
+crystal: 1.9.2
+
+license: MIT
