@@ -11,6 +11,7 @@ This repository contains code written for fun (e.g. solutions to coding challeng
 | dsa              | data structures and algorithms                          | Zig          |
 | euler            | solutions to problems on Project Euler                  | F#           |
 | huffman-cr       | encode and decode text using Huffman coding             | Crystal      |
+| huffman-dart     | same as above                                           | Dart         |
 | huffman-go       | same as above                                           | Go           |
 | huffman-nim      | same as above                                           | Nim          |
 | huffman-rs       | same as above                                           | Rust         |
